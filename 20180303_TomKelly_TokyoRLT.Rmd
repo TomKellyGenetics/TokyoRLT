@@ -1,0 +1,259 @@
+---
+#title: "Plotting Variability in R at #TokyoR"
+#author: "Tom Kelly"
+#institute:
+#   - "PhD Graduate from University Otago, Dunedin, New Zealand"
+#   - "Freelance Consultant at Tohoku University, Sendai, Miyagi"
+#   - "Twitter @tomkXY"
+#   - "GitHub TomKellyGenetics"
+#date: "2018/03/03"
+output: 
+  slidy_presentation: #beamer_presentation: ioslides_presentation: 
+    fig_width: 7.5
+    fig_height: 5
+    fig_caption: false
+    fig_crop: true
+  #template: custom.slidy.html
+  #includes: 
+  #  in_header: header.tex
+---
+
+#Plotting Variability in R at #TokyoR {.bigger}
+
+**Tom Kelly**
+
+PhD Graduate from University Otago, Dunedin, New Zealand
+
+Freelance Consultant at Tohoku University, Sendai, Miyagi
+
+Twitter @tomkXY
+
+GitHub TomKellyGenetics
+
+2018/03/03
+
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.align="center")
+options(repos = "https://cran.ism.ac.jp/")
+par(mar = c(5.1, 4.1, 4.1, 2.1)-2)
+if(!(require("devtools"))){
+  install.packages("devtools")
+  library("devtools")
+}
+if(!(require("vioplot"))){
+  install.packages("vioplot")
+  library("vioplot")
+}
+if(!(require("gplots"))){
+  install.packages("gplots")
+  library("gplots")
+}
+if(!(require("multtest"))){
+  source("http://bioconductor.org/biocLite.R")
+  library("multtest")
+}
+install.packages("RColorBrewer") #Colour Blind Friendly
+```
+
+# Many Problems in Data Analysis Can be Avoided
+
+![](jackie_chan.png)
+
+---
+
+# Always Look at Your Data
+  
+![](computer_guy.png)
+  
+---
+  
+# These Plots All Have The Same Statistical Metrics 
+
+<div style="width=600px; height=200px">  
+![](https://d2f99xq7vri1nk.cloudfront.net/DinoSequentialSmaller.gif)
+</div>
+
+`datasauRus` package
+
+https://www.autodeskresearch.com/publications/samestats
+
+---
+  
+# Data Visualisation is Vital {.bigger}
+  
+- To communicate your results
+- To check your progress
+- To explore your data
+
+---
+  
+# Boxplot
+  
+```{r}
+data(iris)
+boxplot(iris$Sepal.Length[iris$Species=="setosa"], 
+        iris$Sepal.Length[iris$Species=="versicolor"],
+        iris$Sepal.Length[iris$Species=="virginica"], 
+        names=c("setosa", "versicolor", "virginica"))
+```
+
+---
+  
+# Does this show your data? 
+  
+![](https://d2f99xq7vri1nk.cloudfront.net/BoxViolinSmaller.gif)
+
+
+https://www.autodeskresearch.com/publications/samestats
+
+---
+
+  
+#Violin Plot
+  
+```{r, message=FALSE, warning=FALSE}
+library("vioplot")
+```
+```{r}
+vioplot(iris$Sepal.Length[iris$Species=="setosa"], 
+        iris$Sepal.Length[iris$Species=="versicolor"], 
+        iris$Sepal.Length[iris$Species=="virginica"], 
+        names=c("setosa", "versicolor", "virginica"))
+```
+
+
+---
+  
+#Custom Violin Plot (with sensible defaults)
+  
+```{r, message=FALSE, warning=FALSE}
+library("devtools")
+devtools::install_github("TomKellyGenetics/vioplotx")
+library("vioplotx")
+vioplotx(iris$Sepal.Length[iris$Species=="setosa"], 
+         iris$Sepal.Length[iris$Species=="versicolor"], 
+         iris$Sepal.Length[iris$Species=="virginica"], 
+         names=c("setosa", "versicolor", "virginica"))
+```
+
+---
+  
+#Formula Input (backwards compatible with boxplot)
+  
+```{r, warning=TRUE, error=TRUE}
+vioplot(Sepal.Length~Species, data = iris)
+```
+
+```{r}
+vioplotx(Sepal.Length~Species, data = iris)
+```
+
+---
+  
+#Log Scale
+  
+```{r}
+vioplotx(Sepal.Length~Species, data=iris, main="Sepal Length", 
+         log="y", ylim=c(log(4), log(9)))
+```
+
+---
+  
+#Log Scale
+  
+```{r}
+vioplotx(Sepal.Length~Species, data=iris, main="Sepal Length", 
+         log="y", ylim=c(log(4), log(9)))
+axis(2, at=log(1:10), labels=1:10)
+```
+
+---
+  
+#Custom Violin Plot  (with **vectorised** colour customisation)
+  
+  
+```{r}
+vioplotx(Sepal.Length~Species, data = iris, 
+         col="lightblue")
+```
+
+---
+  
+#Custom Violin Plot (with **vectorised** colour customisation)
+  
+```{r}
+vioplotx(Sepal.Length~Species, data = iris, 
+         col=c("lightgreen", "lightblue", "palevioletred"))
+```
+
+---
+  
+#Custom Violin Plot (with **vectorised** colour customisation)
+
+```{r}
+vioplotx(Sepal.Length~Species, data = iris, main = "Sepal", 
+         ylab="Length",  xlab="Species", names=c("A", "B", "C"),
+         col=c("lightgreen", "lightblue", "palevioletred"))
+legend("topleft", title="Species", cex = 0.75,
+       legend=c("setosa", "versicolor", "virginica"), 
+       fill=c("lightgreen", "lightblue", "palevioletred"))
+```
+
+
+---
+  
+#Additional Colour Configuration (more parameters)
+  
+```{r}
+vioplotx(Sepal.Length~Species, data = iris, 
+         col="lightblue", border="royalblue",
+         rectCol="palevioletred", lineCol="violetred",
+         colMed="violet", colMed2="purple", pchMed=23)
+```
+
+---
+  
+#Additional Colour Configuration (all can be vectors)
+
+```{r}
+vioplotx(Sepal.Length~Species, data = iris,
+         col=c("lightgreen", "lightblue", "palevioletred"), 
+         border=c("darkolivegreen4", "royalblue4", "violetred4"),
+         rectCol=c("forestgreen", "blue", "palevioletred3"),
+         lineCol=c("darkolivegreen", "royalblue", "violetred4"),
+         colMed=c("green", "cyan", "magenta"), pchMed=c(15, 17, 19))
+```
+
+
+---
+  
+#Area Equal: scale so plots by area (incl. tails), not width
+  
+```{r}
+vioplotx(Sepal.Length~Species, data = iris, areaEqual=TRUE,
+         col=c("lightgreen", "lightblue", "palevioletred"), 
+         border=c("darkolivegreen4", "royalblue4", "violetred4"),
+         rectCol=c("forestgreen", "blue", "palevioletred3"),
+         lineCol=c("darkolivegreen", "royalblue", "violetred4"),
+         colMed=c("green", "cyan", "magenta"), pchMed=c(15, 17, 19))
+```
+
+
+---
+  
+#Comparison: split violin plot
+  
+
+```{r}
+iris_large <- iris[iris$Sepal.Width > mean(iris$Sepal.Width), ]
+iris_small <- iris[iris$Sepal.Width <= mean(iris$Sepal.Width), ]
+```
+
+```{r}
+vioplotx(Sepal.Length~Species, data=iris_large, col = "palevioletred", plotCentre = "line", side = "right",
+  main="Iris Data", xlab = "Species", ylab = "Sepal Length")
+vioplotx(Sepal.Length~Species, data=iris_small, col = "lightblue", plotCentre = "line", side = "left", add = T)
+legend("topleft", fill = c("lightblue", "palevioletred"), legend = c("small", "large"), title = "Sepal Width", cex=1.25)
+```
